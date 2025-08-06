@@ -1,124 +1,135 @@
-# Video & Image Sorter (with Orientation Detection)
+# Video Sorter
 
-A Python desktop utility with a Tkinter GUI for automatically sorting videos and images into structured folders based on their type and orientation.  
-It uses **FFmpeg** (`ffprobe`) to detect video orientation, allowing portrait videos to be separated (e.g., for shorts) from landscape videos (e.g., for YouTube content).
+A Python-based tool for organising and renaming raw video and image files from railway galas and similar events.  
+The sorter processes each file interactively, allowing you to assign locomotive details, event/location, and a short description, while automatically generating folder structures and safe filenames.
 
 ---
 
 ## Features
 
-- **Automatic File Sorting**  
-  Sorts videos and images into pre-defined folder structures for projects.
-  
-- **Video Orientation Detection**  
-  Uses `ffprobe` from the FFmpeg suite to identify **Portrait**, **Landscape**, and **Square** videos.
-
-- **Dry Run Mode**  
-  Preview file moves before actually performing them.
-
-- **Custom Project Naming**  
-  Files are sorted into directories named after the selected project.
-
-- **User-Friendly GUI**  
-  Built with Tkinter for easy folder selection, configuration, and progress viewing.
+- **Interactive file processing**
+  - Select locomotive name, number, event/location, date, and short description for each file.
+- **Metadata-aware date handling**
+  - Extracts recording date from file metadata where available and locks date fields.
+  - Falls back to file modified date if metadata is missing (editable).
+- **Collision-safe file naming**
+  - Automatically appends `_1`, `_2`, etc. to filenames to prevent overwriting.
+- **Safe copy/move**
+  - Copies file first, verifies size, then deletes original only on success.
+- **Meta info preview**
+  - Displays file details, destination path, and final filename before processing.
+  - Colour-coded for easy status checks.
+- **Dry Run mode**
+  - Test runs without moving files.
+- **Skip files**
+  - Skip individual files during processing.
+- **Clipboard integration**
+  - Copy destination folder or file path with one click.
 
 ---
 
 ## Requirements
 
-- **Python** 3.7+
-- **FFmpeg** installed locally and accessible via `ffprobe`
-- `pip` packages:
-  - `ffmpeg-python`
-  - Standard library modules (`os`, `shutil`, `tkinter`, `datetime`)
+- **Python:** 3.8+
+- **Dependencies:**
+  - [ffmpeg](https://ffmpeg.org/) (ensure `ffmpeg.exe` and `ffprobe.exe` are installed and paths are set in the script)
+  - Python packages:
+    ```bash
+    pip install pillow
+    ```
+- **OS:** Windows (tested), should work on other OSes with minor adjustments.
 
 ---
 
 ## Installation
 
-1. **Clone this repository**
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/gala-mode-video-sorter.git
+cd gala-mode-video-sorter
+```
+
+2. Install dependencies:
 
 ```bash
-   git clone https://github.com/yourusername/video-image-sorter.git
-   cd video-image-sorter
+pip install pillow
 ```
 
-2. Install dependencies
-
-```bash
-pip install ffmpeg-python
-```
-
-3. Install FFmpeg
-- Download FFmpeg from: https://ffmpeg.org/download.html
-- Extract it and update the ffmpeg_path variable in the script to match your system.
-
-## Configuration
-
-Edit the script’s CONFIG section to suit your environment:
-
-```python
-ffmpeg_path = r"C:\ffmpeg\bin\ffprobe.exe"  # Path to ffprobe
-VIDEO_EXTENSIONS = ['.mp4', '.mov', '.m4v', '.avi', '.mkv']
-IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic']
-DEFAULT_INBOX = r"E:\Inbox"                 # Default folder to scan
-```
-
-The folder structure is generated automatically:
-
-```bash
-Videos/
-  Raw Videos/
-    <Year>/
-      <Project Name>/
-        Shorts/
-        YouTube/
-        Uploaded/
-
-Photography/
-  <Year>/<Month>/<Project Name>/
-```
+3. Install [ffmpeg](https://ffmpeg.org/download.html) and update the ffmpeg_exe path in the script.
 
 ## Usage 
 
-1. Run the script
+1. Run the script:
 
 ```bash
-python sorter.py
+python gala_mode_sorter.py
 ```
 
-2. In the GUI:
+2. Set Inbox Folder:
+Select the folder containing raw video/image files.
 
-- Inbox Folder: Choose the folder containing your unsorted videos and images.
+3. Process Files:
+- Preview the file (default at 70% of the timeline for videos).
+- Fill in locomotive details, location, and short description.
+- Adjust date if required (unlocked for modified date/manual entries).
+- Press Process Next to move the file to its destination.
+- Press Skip to skip without processing.
 
-- Project Name: Enter the name for the current batch/project.
+4. Dry Run Mode:
+Enable to simulate the process without moving files.
 
-- Dry Run: Enable to preview moves without changing files.
+## Example Workflow 
 
-- Click Sort Files.
+![Main Interface](images/screenshot-main-ui.png)
 
-3. The output log will display:
+- Load your gala footage folder.
+- Assign details for the first clip.
+- Review the meta info box for the final filename and destination.
+- Process the file — the tool creates the correct folder and safely moves the file.
+- Repeat for each clip.
 
-- File name
+![Meta Info Box](images/screenshot-meta-box.png)
 
-- Detected orientation/type
+## Folder Structure 
 
-- Destination path
+Videos:
 
-- Whether the move was performed
-
-## Example Output
-
-```bash
-[Portrait]   clip1.mp4 → Would move to E:\Videos\Raw Videos\2025\ProjectX\Shorts\clip1.mp4
-[Landscape] clip2.mp4 → Would move to E:\Videos\Raw Videos\2025\ProjectX\YouTube\clip2.mp4
-[Image]     photo1.jpg → Would move to E:\Photography\2025\08\ProjectX\photo1.jpg
+```markdown
+Videos/
+└── LocomotiveName_Number/
+    └── Raw Footage/
+        ├── Landscape/
+        │   └── YYYY-MM-DD_EventName/
+        └── Shorts/
+            └── YYYY-MM-DD_EventName/
 ```
+
+Photos: 
+
+```markdown
+Photography/
+└── LocomotiveName_Number/
+    └── Raw Stills/
+        └── YYYY-MM-DD_EventName/
+```
+
+## Safety Features
+
+- Collision-safe filenames to prevent overwriting.
+- Safe move logic: only deletes the original if copy size matches the source.
+- Quarantine-ready: code can be adapted to move failed transfers to a quarantine folder.
 
 ## Known Limitations
 
-- Only supports file extensions listed in `VIDEO_EXTENSIONS` and `IMAGE_EXTENSIONS`.
+- Large files: Copying large files can appear to “hang” — there’s no progress bar at present.
+- No batch metadata editing: Each file is processed individually unless using “Apply to next N files”.
+- Recycle Bin bypass: Files deleted by the tool are removed immediately (no recycle bin).
+- Windows paths only: Path separators and drive handling assume Windows; adjust for macOS/Linux.
 
-- Requires FFmpeg to be installed locally.
 
-- Designed for Windows paths — Linux/Mac users will need to adjust directory defaults.
+## Future Enhancements 
+
+- Add progress bar for large file moves.
+- Optional quarantine folder for all deleted originals.
+- Export processing logs.
+- Batch processing pre-sets.

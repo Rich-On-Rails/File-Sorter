@@ -1,0 +1,23 @@
+{
+    "locos": [
+        {
+            "name": "GWR Heavy Freight",
+            "number": "3802"
+        },
+        {
+            "name": "Kitson Austin 1",
+            "number": "5459"
+        },
+        {
+            "name": "GWR Pannier Tank",
+            "number": "7754"
+        },
+        {
+            "name": "Betton Grange",
+            "number": "6880"
+        }
+    ],
+    "locations": [
+        "Llangollen Branch Gala 2025"
+    ]
+}
