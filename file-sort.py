@@ -228,7 +228,7 @@ class GalaSorter:
         self.day_var = tk.IntVar()
         self.same_loco_var = tk.BooleanVar(value=False)
         self.apply_next_var = tk.IntVar(value=1)
-        self.dry_run_var = tk.BooleanVar(value=True)
+        self.dry_run_var = tk.BooleanVar(value=False)
         self.preview_percent_var = tk.IntVar(value=70)
         tk.Label(master, text="Inbox Folder:").grid(row=0, column=0, sticky="w")
         tk.Entry(master, textvariable=self.inbox_var, width=60).grid(row=0, column=1)
