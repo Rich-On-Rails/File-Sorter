@@ -8,13 +8,15 @@ VIDEO_EXTENSIONS = [".mp4", ".mov", ".m4v", ".avi", ".mkv"]
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic"]
 DEFAULT_INBOX = r"E:\Inbox"
 DRIVE_ROOT = os.path.splitdrive(DEFAULT_INBOX)[0] + os.sep
-VIDEO_BASE_DIR, PHOTO_BASE_DIR = os.path.join(DRIVE_ROOT, "Videos"), os.path.join(
-    DRIVE_ROOT, "Photography"
-)
+VIDEO_BASE_DIR, PHOTO_BASE_DIR = os.path.join(DRIVE_ROOT, "Videos", "Locomotives"), os.path.join(DRIVE_ROOT, "Photography", "Locomotives")
+
 ffmpeg_exe = r"C:\ffmpeg\bin\ffmpeg.exe"
+
 DATA_FILE = os.path.join(os.path.dirname(__file__), "video_sorter_data.json")
+
 if not os.path.exists(DRIVE_ROOT):
     raise RuntimeError(f"Drive {DRIVE_ROOT} does not exist")
+
 def load_data():
     return (
         json.load(open(DATA_FILE, "r", encoding="utf-8"))
@@ -25,9 +27,7 @@ def load_data():
 def save_data(data):
     json.dump(data, open(DATA_FILE, "w", encoding="utf-8"), indent=4)
 
-
 data_store = load_data()
-
 
 def get_video_duration(path):
     try:
@@ -213,6 +213,24 @@ def move_and_rename(file_path, dest_dir, loco_number, year, location, short_desc
         shutil.move(file_path, os.path.join(QUARANTINE_DIR, os.path.basename(file_path)))
 
 class GalaSorter:
+
+    def on_loco_name_selected(self, event=None):
+        selected_name = self.loco_name_var.get()
+        for loco in data_store["locos"]:
+            if loco["name"] == selected_name:
+                self.loco_number_var.set(loco["number"])
+                break
+
+    def handle_non_date_change(self, *args):
+        # Just refresh the info without overriding the date source tag
+        current_text = self.meta_text.get("1.0", "end")
+        if "Date Source: Metadata" in current_text:
+            self.update_meta_info("Metadata")
+        elif "Date Source: Modified Date" in current_text:
+            self.update_meta_info("Modified Date")
+        else:
+            self.update_meta_info("Manual")
+
     def __init__(self, master):
         self.master = master
         master.title("Gala Mode Video Sorter")
@@ -236,11 +254,13 @@ class GalaSorter:
             row=0, column=2
         )
         tk.Label(master, text="Loco Name:").grid(row=1, column=0, sticky="w")
+        loco_names = sorted(l["name"] for l in data_store["locos"])
         self.loco_name_cb = ttk.Combobox(
             master,
             textvariable=self.loco_name_var,
-            values=[l["name"] for l in data_store["locos"]],
+            values=loco_names,
         )
+        self.loco_name_cb.bind("<<ComboboxSelected>>", self.on_loco_name_selected)
         self.loco_name_cb.grid(row=1, column=1, sticky="w")
         tk.Label(master, text="Loco Number:").grid(row=2, column=0, sticky="w")
         self.loco_number_cb = ttk.Combobox(
@@ -318,16 +338,13 @@ class GalaSorter:
             master, text="Copy Destination File", command=self.copy_dest_file
         )
         self.copy_file_btn.grid(row=14, column=1)
-        for v in [
-            self.loco_name_var,
-            self.loco_number_var,
-            self.location_var,
-            self.short_desc_var,
-            self.year_var,
-            self.month_var,
-            self.day_var,
-        ]:
-            v.trace_add("write", lambda *a: self.update_meta_info())
+        # Date fields – these changes mean manual override
+        for v in [self.year_var, self.month_var, self.day_var]:
+            v.trace_add("write", lambda *a: self.update_meta_info("Manual"))
+
+        # Other fields – don’t change the date source
+        for v in [self.loco_name_var, self.loco_number_var, self.location_var, self.short_desc_var]:
+            v.trace_add("write", self.handle_non_date_change)
 
     def browse_folder(self):
         s = filedialog.askdirectory()
@@ -387,7 +404,7 @@ class GalaSorter:
         self.timestamp_label.config(text=f"Preview at: {ts}" if ts else "")
         if not regen:
             self.progress_label.config(
-                text=f"File {self.file_index+1} of {len(self.file_list)}\n{os.path.basename(f)}"
+                text=f"File {self.file_index+1} of {len(self.file_list)}"
             )
         self.update_meta_info(src)
 
