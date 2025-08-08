@@ -15,9 +15,35 @@
         {
             "name": "Betton Grange",
             "number": "6880"
+        },
+        {
+            "name": "BR Riddles Standard 4MT",
+            "number": "75069"
+        },
+        {
+            "name": "Sierra Leone",
+            "number": "45627"
+        },
+        {
+            "name": "GWR Collett",
+            "number": "1450"
+        },
+        {
+            "name": "Bahamas",
+            "number": "45596"
+        },
+        {
+            "name": "Erlestoke Manor",
+            "number": "7812"
+        },
+        {
+            "name": "Bradley Manor",
+            "number": "7802"
         }
     ],
     "locations": [
-        "Llangollen Branch Gala 2025"
+        "Llangollen Branch Gala 2025",
+        "SVR Spring Gala",
+        "SVR Footplate Ride"
     ]
 }
